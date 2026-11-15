@@ -21,7 +21,10 @@ export default {
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
     if (!env.OPENCODE_BASE_URL || !env.OPENCODE_PASSWORD || !env.MANAGER_API_TOKEN)
       return json({ error: "Worker secrets are not configured." }, 503);
-    if (request.headers.get("Authorization") !== "Bearer " + env.MANAGER_API_TOKEN)
+    const auth = request.headers.get("Authorization") || "";
+    const managerAuth = auth === "Bearer " + env.MANAGER_API_TOKEN;
+    const runtimeAuth = auth === basicAuth(env);
+    if (url.pathname === "/api/status" ? !managerAuth : (!managerAuth && !runtimeAuth))
       return json({ error: "Unauthorized" }, 401);
 
     if (url.pathname === "/api/status") {
